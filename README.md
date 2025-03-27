@@ -53,12 +53,16 @@ node build/server.js
 
 ## Example Server and Client
 
+```shell
+yarn install @types/express @types/json-bigint @types/node duckdb express json-bigint
+```
+
 You can also develop the SSE server independently from Claude Desktop so you get faster iterations. For example, run the `src/server.ts` and use the `src/client.ts` as the client.
 
 Start server, once you start the client on another terminal, you see the server output.
 
 ```shell
-% node build/server.js
+% node examples/server.js
 Server is running on port 8808
 
 --> Received connection: /sse
@@ -97,7 +101,7 @@ New SSE connection.
 Start the client
 
 ```shell
-% node build/client.js
+% node examples/client.js
 Connecting...
 Connected: { resources: {}, tools: {}, templates: {} }
 { resources: [] }

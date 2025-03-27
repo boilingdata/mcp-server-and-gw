@@ -35,13 +35,10 @@ const respond = console.log; // Message back to Claude Desktop App.
 
 // 1. Establish persistent MCP server SSE connection and forward received messages to stdin
 function connectSSEBackend() {
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("SSE Backend Connection timeout")), 10_000);
     const source = new EventSource(backendUrlSse);
-    source.onopen = (evt: Event) => {
-      clearTimeout(timer);
-      resolve(evt);
-    };
+    source.onopen = (evt: Event) => resolve(clearTimeout(timer));
     source.addEventListener("message", (e) => respond(e.data)); // forward to Claude Desktop App via stdio transport
     source.addEventListener("endpoint", (e) => (backendUrlMsg = `${baseUrl}${e.data}`));
     source.addEventListener("error", (e) => reject(e));
@@ -56,7 +53,8 @@ async function processMessage(inp: Buffer) {
   const msg = inp.toString();
   debug("-->", msg.trim());
   const [method, body, headers] = ["POST", msg, { "Content-Type": "application/json" }];
-  await fetch(new URL(backendUrlMsg), { method, body, headers }).catch((e) => debug("fetch error:", e));
+  const resp = await fetch(new URL(backendUrlMsg), { method, body, headers }).catch((e) => debug("fetch error:", e));
+  if (resp && !resp?.ok) debug(`HTTP error: ${resp.status} ${resp.statusText}`);
 }
 
 async function runBridge() {
