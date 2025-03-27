@@ -1,5 +1,5 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import eventsource from "eventsource";
+import * as eventsource from "eventsource";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import {
   CallToolResultSchema,

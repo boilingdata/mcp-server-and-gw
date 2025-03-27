@@ -1,16 +1,16 @@
 #!/usr/bin/env node
-import EventSource from "eventsource";
+import { EventSource } from "eventsource";
 
 // Get the backend URL from command line arg or environment variables
 let baseUrl: string;
 
 if (process.argv.length > 2) {
   baseUrl = process.argv[2];
-  if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+  if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
     baseUrl = `http://${baseUrl}`;
   }
   // Remove trailing slash if present
-  if (baseUrl.endsWith('/')) {
+  if (baseUrl.endsWith("/")) {
     baseUrl = baseUrl.slice(0, -1);
   }
 } else {
@@ -20,7 +20,7 @@ if (process.argv.length > 2) {
 }
 
 const backendUrlSse = `${baseUrl}/sse`;
-const backendUrlMsg = `${baseUrl}/message`;
+let backendUrlMsg = `${baseUrl}/message`;
 
 const debug = console.error; // With stdio transport stderr is the only channel for debugging
 const respond = console.log; // Message back to Claude Desktop App.
@@ -36,13 +36,18 @@ const respond = console.log; // Message back to Claude Desktop App.
 // 1. Establish persistent MCP server SSE connection and forward received messages to stdin
 function connectSSEBackend() {
   return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("SSE Backend Connection timeout")), 10_000);
     const source = new EventSource(backendUrlSse);
-    source.onopen = (evt: MessageEvent) => resolve(evt);
-    source.addEventListener("error", (__e) => reject(__e));
-    source.addEventListener("open", (___e) => debug(`--- SSE backend connected`));
-    source.addEventListener("error", (__e) => debug(`--- SSE backend disc./error: ${(<any>__e)?.message}`));
-    source.addEventListener("message", (e) => debug(`<-- ${e.data}`));
+    source.onopen = (evt: Event) => {
+      clearTimeout(timer);
+      resolve(evt);
+    };
     source.addEventListener("message", (e) => respond(e.data)); // forward to Claude Desktop App via stdio transport
+    source.addEventListener("endpoint", (e) => (backendUrlMsg = `${baseUrl}${e.data}`));
+    source.addEventListener("error", (e) => reject(e));
+    source.addEventListener("open", (e) => debug(`--- SSE backend connected`));
+    source.addEventListener("error", (e) => debug(`--- SSE backend disc./error: ${(<any>e)?.message}`));
+    source.addEventListener("message", (e) => debug(`<-- ${e.data}`));
   });
 }
 
