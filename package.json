@@ -7,10 +7,7 @@
     "claude_gateway": "./build/claude_gateway.js"
   },
   "files": [
-    "build",
-    "!build/client.js",
-    "!build/duckdb.js",
-    "!build/server.js"
+    "build"
   ],
   "scripts": {
     "build": "rm -rf build && tsc",
