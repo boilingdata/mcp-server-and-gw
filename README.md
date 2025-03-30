@@ -46,7 +46,7 @@ echo '{
 }' > ~/Library/Application\ Support/Claude/claude_desktop_config.json
 
 ## 3. Start server so that claude can connect to it for discoverying its resources, tools, etc.
-node build/server.js
+node examples/server.js
 
 ## 4. Start Claude Desktop
 ```
