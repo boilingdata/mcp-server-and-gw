@@ -11,13 +11,13 @@ You can install the package globally or use it directly with npx:
 npm install -g mcp-server-and-gw
 
 # Using npx (no installation required)
-npx claude_gateway http://localhost:9999
+npx claude_gateway http://localhost:8808/
 
 # If installed globally
-claude_gateway http://localhost:9999
+claude_gateway http://localhost:8808/
 
 # Using environment variables
-MCP_HOST=localhost MCP_PORT=9999 npx claude_gateway
+MCP_HOST=localhost MCP_PORT=8808 npx claude_gateway
 ```
 
 ## Add Configuration into Claude
@@ -38,14 +38,14 @@ echo '{
     "Claude Gateway Example": {
       "command": "/opt/homebrew/bin/npx",
       "args": [
-        "claude_gateway", "http://localhost:9999/"
+        "claude_gateway", "http://localhost:8808/"
       ]
     }
   }
 }' > ~/Library/Application\ Support/Claude/claude_desktop_config.json
 
 ## 3. Start server so that claude can connect to it for discoverying its resources, tools, etc.
-node examples/server.js
+PORT=8808 node examples/server.js
 
 ## 4. Start Claude Desktop
 ```

@@ -24,7 +24,12 @@
   },
   "devDependencies": {
     "@types/eventsource": "^1.1.15",
+    "@types/express": "^5.0.1",
+    "@types/json-bigint": "^1.0.4",
     "@types/node": "^22.13.14",
+    "duckdb": "^1.2.1",
+    "express": "^4.21.2",
+    "json-bigint": "^1.0.0",
     "typescript": "^5.3.3"
   }
 }
