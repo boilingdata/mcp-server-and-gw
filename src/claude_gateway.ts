@@ -61,6 +61,10 @@ async function runBridge() {
   debug(`-- Connecting to MCP server at ${baseUrl}`);
   await connectSSEBackend();
   process.stdin.on("data", processMessage);
+  process.stdin.on("end", () => {
+    debug("-- stdin disconnected, exiting");
+    process.exit(0);
+  });
   debug(`-- MCP stdio to SSE gateway running - connected to ${baseUrl}`);
 }
 
