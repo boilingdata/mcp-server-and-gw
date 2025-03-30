@@ -39,7 +39,10 @@ function connectSSEBackend() {
     const timer = setTimeout(() => reject(new Error("SSE Backend Connection timeout")), 10_000);
     const source = new EventSource(backendUrlSse);
     source.onopen = (evt: Event) => resolve(clearTimeout(timer));
-    source.addEventListener("endpoint", (e) => (backendUrlMsg = `${baseUrl}${e.data}`));
+    source.addEventListener("endpoint", (e) => {
+      backendUrlMsg = `${baseUrl}${e.data}`;
+      debug(`--- SSE backend sent "endpoint" event (${e.data}) ==> Setting message endpoint URL: "${backendUrlMsg}"`);
+    });
     source.addEventListener("error", (e) => reject(e));
     source.addEventListener("message", (e) => respond(e.data)); // forward to Claude Desktop App via stdio transport
     source.addEventListener("message", (e) => debug(`<-- ${e.data}`));
