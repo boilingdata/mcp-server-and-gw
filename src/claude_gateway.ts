@@ -39,12 +39,12 @@ function connectSSEBackend() {
     const timer = setTimeout(() => reject(new Error("SSE Backend Connection timeout")), 10_000);
     const source = new EventSource(backendUrlSse);
     source.onopen = (evt: Event) => resolve(clearTimeout(timer));
-    source.addEventListener("message", (e) => respond(e.data)); // forward to Claude Desktop App via stdio transport
     source.addEventListener("endpoint", (e) => (backendUrlMsg = `${baseUrl}${e.data}`));
     source.addEventListener("error", (e) => reject(e));
+    source.addEventListener("message", (e) => respond(e.data)); // forward to Claude Desktop App via stdio transport
+    source.addEventListener("message", (e) => debug(`<-- ${e.data}`));
     source.addEventListener("open", (e) => debug(`--- SSE backend connected`));
     source.addEventListener("error", (e) => debug(`--- SSE backend disc./error: ${(<any>e)?.message}`));
-    source.addEventListener("message", (e) => debug(`<-- ${e.data}`));
   });
 }
 
