@@ -31,13 +31,12 @@ A [Model Context Protocol](https://www.anthropic.com/news/model-context-protocol
 yarn install
 yarn build
 
-## 2. Copy the code or update the claude_desktop_config.json to match the script location
-##    (You many need to set the node path to full path)
-cp build/claude_gateway.js /tmp
+## 2. Copy the code or update the claude_desktop_config.json
+##    NOTE: Ensure that npx is in the PATH, os use full path.
 echo '{
   "mcpServers": {
     "Claude Gateway Example": {
-      "command": "npx",
+      "command": "/opt/homebrew/bin/npx",
       "args": [
         "claude_gateway", "http://localhost:9999/"
       ]
