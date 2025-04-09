@@ -22,6 +22,23 @@ if (process.argv.length > 2) {
 const backendUrlSse = `${baseUrl}/sse`;
 let backendUrlMsg = `${baseUrl}/message`;
 
+// Extract custom headers from environment variables
+function getCustomHeaders(): Record<string, string> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  
+  for (const [key, value] of Object.entries(process.env)) {
+    if (key.toUpperCase().startsWith('MCP_HEADER_') && value) {
+      const headerKey = key.substring('MCP_HEADER_'.length).toLowerCase();
+      headers[headerKey] = value;
+    }
+  }
+  
+  return headers;
+}
+
+// Store custom headers
+const customHeaders = getCustomHeaders();
+
 const debug = console.error; // With stdio transport stderr is the only channel for debugging
 const respond = console.log; // Message back to Claude Desktop App.
 
@@ -37,7 +54,16 @@ const respond = console.log; // Message back to Claude Desktop App.
 function connectSSEBackend() {
   return new Promise<void>((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("SSE Backend Connection timeout")), 10_000);
-    const source = new EventSource(backendUrlSse);
+    const source = new EventSource(backendUrlSse, {
+      fetch: (input, init) =>
+        fetch(input, {
+          ...init,
+          headers: {
+            ...init?.headers,
+            ...customHeaders,
+          },
+        }),
+    });
     source.onopen = (evt: Event) => resolve(clearTimeout(timer));
     source.addEventListener("endpoint", (e) => {
       // Extract base URL without path and query parameters
@@ -58,8 +84,8 @@ function connectSSEBackend() {
 async function processMessage(inp: Buffer) {
   const msg = inp.toString();
   debug("-->", msg.trim());
-  const [method, body, headers] = ["POST", msg, { "Content-Type": "application/json" }];
-  const resp = await fetch(new URL(backendUrlMsg), { method, body, headers }).catch((e) => debug("fetch error:", e));
+  const [method, body] = ["POST", msg];
+  const resp = await fetch(new URL(backendUrlMsg), { method, body, headers: customHeaders }).catch((e) => debug("fetch error:", e));
   if (resp && !resp?.ok) debug(`HTTP error: ${resp.status} ${resp.statusText}`);
 }
 
