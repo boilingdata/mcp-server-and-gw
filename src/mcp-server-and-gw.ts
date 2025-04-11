@@ -33,18 +33,24 @@ const respond = console.log; // Message back to Claude Desktop App.
  *    responds HTTP 202 Accept (the "actual" response is sent through the SSE connection)
  */
 
+let connected = false;
+let queue: Buffer[] = [];
+
 // 1. Establish persistent MCP server SSE connection and forward received messages to stdin
 function connectSSEBackend() {
+  connected = false;
+  queue = [];
   return new Promise<void>((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("SSE Backend Connection timeout")), 10_000);
     const source = new EventSource(backendUrlSse);
-    source.onopen = (evt: Event) => resolve(clearTimeout(timer));
     source.addEventListener("endpoint", (e) => {
       // Extract base URL without path and query parameters
       const urlObj = new URL(baseUrl);
       const baseWithoutPath = `${urlObj.protocol}//${urlObj.host}`;
       backendUrlMsg = `${baseWithoutPath}${e.data}`;
       debug(`--- SSE backend sent "endpoint" event (${e.data}) ==> Setting message endpoint URL: "${backendUrlMsg}"`);
+      connected = true;
+      resolve(clearTimeout(timer));
     });
     source.addEventListener("error", (e) => reject(e));
     source.addEventListener("message", (e) => respond(e.data)); // forward to Claude Desktop App via stdio transport
@@ -56,6 +62,10 @@ function connectSSEBackend() {
 
 // 2. Forward received message to the MCP server
 async function processMessage(inp: Buffer) {
+  if (!connected) {
+    queue.push(inp);
+    return;
+  }
   const msg = inp.toString();
   debug("-->", msg.trim());
   const [method, body, headers] = ["POST", msg, { "Content-Type": "application/json" }];
@@ -65,12 +75,14 @@ async function processMessage(inp: Buffer) {
 
 async function runBridge() {
   debug(`-- Connecting to MCP server at ${baseUrl}`);
-  await connectSSEBackend();
   process.stdin.on("data", processMessage);
   process.stdin.on("end", () => {
     debug("-- stdin disconnected, exiting");
     process.exit(0);
   });
+  await connectSSEBackend();
+  queue.forEach(processMessage);
+  queue = [];
   debug(`-- MCP stdio to SSE gateway running - connected to ${baseUrl}`);
 }
 
