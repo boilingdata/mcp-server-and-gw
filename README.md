@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/boilingdata-mcp-server-and-gw-badge.png)](https://mseep.ai/app/boilingdata-mcp-server-and-gw)
+
 # MCP Gateway, Server, and Client
 
 As long as Claude Desktop does not support connecting to remote servers, you can use this script to run a bridge from stdio to HTTP SSE (Server-Sent Events) endpoint.
